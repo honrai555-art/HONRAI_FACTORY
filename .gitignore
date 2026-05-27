@@ -1,0 +1,74 @@
+# 環境変数・設定ファイル
+.env
+.env.local
+.env.*.local
+
+# Lark 設定
+lark/config/lark_config.json
+
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+build/
+develop-eggs/
+dist/
+downloads/
+eggs/
+.eggs/
+lib/
+lib64/
+parts/
+sdist/
+var/
+wheels/
+*.egg-info/
+.installed.cfg
+*.egg
+MANIFEST
+
+# 仮想環境
+.venv/
+env/
+venv/
+ENV/
+env.bak/
+venv.bak/
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+
+# OS
+.DS_Store
+Thumbs.db
+
+# ビルド・出力（大容量ファイル）
+output/
+logs/
+builds/
+models/
+*.ckpt
+*.safetensors
+*.log
+
+# Node.js
+node_modules/
+
+# ComfyUI・Unity 関連
+tools/comfyui/ComfyUI-master/output/
+tools/comfyui/ComfyUI-master/logs/
+unityprojects/*/Library/
+unityprojects/*/Temp/
+unityprojects/*/obj/
+unityprojects/*/*.csproj
+unityprojects/*/*.sln
+
+# GitHub 関連
+github/career-card-gas/node_modules/
+github/career-card-gas/package-lock.json

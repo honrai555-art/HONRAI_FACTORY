@@ -1,0 +1,6 @@
+案件ID,案件名,種類,担当者,状態,締切,成果物URL,エラー内容,次のアクション,更新日
+PRJ-001,診断回答が入りました,診断,Cさん,作業中,2026-05-28,https://docs.google.com/spreadsheets/d/xxx,なし,AI分析開始,2026-05-26
+PRJ-002,キャリアカードPDF生成待ち,キャリアカード,Bさん,確認待ち,2026-05-29,https://drive.google.com/file/d/yyy,なし,PDF生成開始,2026-05-26
+PRJ-003,漫画プロット確認待ち,漫画,Aさん,確認待ち,2026-05-27,https://drive.google.com/file/d/zzz,なし,セリフ確認,2026-05-26
+PRJ-004,ゲーム素材整理中,ゲーム,Bさん,作業中,2026-05-30,https://drive.google.com/drive/folders/aaa,なし,素材整理,2026-05-26
+PRJ-005,メタバースシーン確認待ち,メタバース,Cさん,確認待ち,2026-05-31,https://drive.google.com/drive/folders/bbb,なし,シーン確認,2026-05-26

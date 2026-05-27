@@ -1,0 +1,4 @@
+{
+  "webhook_url": "ここにLarkのIncoming Webhook URLを入れる",
+  "comment": "このファイルは .gitignore に登録されているため、GitHub に保存されません。"
+}
