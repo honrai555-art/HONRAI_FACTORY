@@ -1,24 +1,139 @@
 # HONRAI_FACTORY
 
-AI 工場（Cursor / Claude）のルールと、Discord bot 開発の土台をまとめたリポジトリです。
+AI 製造工場（Cursor / Claude）のルールと、Discord 遠隔操作・製造ライン・外部連携の土台をまとめたリポジトリです。
 
 ## このリポジトリの目的
 
 1. **AI 工場ルールの固定** — Cursor と Claude が同じ方針で動く
 2. **日本語化** — 説明・ドキュメントを日本語中心に
 3. **GitHub 運用** — コードの正本を GitHub に置く
-4. **Discord bot 開発** — Bot 開発を最優先のユースケースにする
+4. **Discord 遠隔操作** — スマホから工場ラインを起動・監視する
+5. **製造ライン統合** — 漫画 / キャリアカード / メタバースをパイプライン化する
 
 ## フォルダ構成
 
 ```
 HONRAI_FACTORY/
-├── .cursorrules      … Cursor 用ルール（このリポジトリ全体）
-├── CLAUDE.md         … Claude 用ルール
-├── README.md         … このファイル（人間向け説明）
-├── bot/              … Discord bot（discord.js）
-├── prompts/          … AI に渡すプロンプト例
-└── workflow/         … GitHub・日常運用の手順
+├── .cursorrules / CLAUDE.md / AGENTS.md
+├── README.md
+├── bot/                    … Discord 遠隔操作（工場 Bot + discord.js 学習用）
+├── workspace/              … 作業入力（原案・ストーリーボード・キャリア等）
+├── prompts/                … AI プロンプト資産
+├── pipelines/              … 製造ライン定義（YAML）
+├── scripts/                … 実行スクリプト・オーケストレータ
+├── integrations/           … GAS / Google / Lark 連携
+├── unityprojects/          … Unity プロジェクト
+├── tools/                  … ComfyUI 等の外部ツール
+├── data/                   … マスタデータ
+├── config/                 … 工場設定
+├── docs/                   … 設計ドキュメント
+├── workflow/               … GitHub・日常運用の手順
+├── github/                 … サブリポジトリ管理
+└── .github/workflows/      … CI/CD
+```
+
+## Discord 遠隔操作
+
+`bot/factory_bot.py`（Python / discord.py）が工場の遠隔操作ハブです。
+
+| コマンド | 機能 |
+|----------|------|
+| `!status` | CPU/RAM/GPU と各ラインの稼働状態 |
+| `!gitpull` | GitHub から最新コードを取得 |
+| `!manga` | 漫画出力監視を起動 |
+| `!comfy_test` | ComfyUI 最小テスト |
+| `!unity` | Unity batch ビルド |
+| `!logs` | 最新ログを表示 |
+
+起動例:
+
+```powershell
+cd C:\Users\honra\HONRAI_FACTORY
+python -m bot.factory_bot
+```
+
+詳細は `bot/README.md` を参照してください。
+
+## pipelines 構造
+
+`pipelines/` は製造ラインの定義を YAML で管理します。
+
+```
+pipelines/
+├── manga.yaml           … GPT → ComfyUI → 通知
+├── career-card.yaml     … GAS → PDF → 通知
+├── metaverse.yaml       … Unity → builds → 通知
+├── manga/               … 漫画ライン用の補助定義
+├── career-card/
+└── metaverse/
+```
+
+統合実行の入口は `scripts/orchestrator.py` です。
+
+## integrations 構造
+
+外部サービスとの連携を `integrations/` に集約します。
+
+```
+integrations/
+├── gas/
+│   └── career-card/     … キャリアカード GAS ソース
+├── google/              … Sheets / Drive / Slides API
+└── lark/                … Lark Webhook / Base 連携
+```
+
+既存の Lark 設計・スクリプトは `lark/` にもあり、`integrations/lark/` へ段階的に移行する想定です。
+
+## Unity / Blender ライン
+
+```
+unityprojects/
+├── kaido-walk/          … KAIDO WALK プロジェクト
+└── honrai-metaverse/    … メタバースプロジェクト
+
+scripts/
+├── unity_build.ps1      … Unity batchmode ビルド
+└── blender/             … Blender headless 自動化（予定）
+```
+
+Discord から `!unity` で `scripts/unity_build.ps1` を起動できます。成果物は `builds/` に出力します。
+
+## GAS キャリアカードライン
+
+```
+integrations/gas/career-card/   … GAS ソース（clasp 管理予定）
+pipelines/career-card.yaml        … ライン定義
+scripts/career/                   … GAS 呼び出し・後処理
+workspace/career/                 … 診断テンプレ・原稿
+prompts/career/                   … キャリアカード用プロンプト
+```
+
+フロー: Google フォーム → スプレッドシート → GAS → Slides/PDF → 通知
+
+## GitHub 物流構造
+
+```
+.github/workflows/
+├── lint-bot.yml         … Bot の lint / テスト
+└── deploy-gas.yml       … GAS 自動デプロイ
+
+github/                  … サブリポジトリ（career-card-gas 等）
+bot/commands/gitpull.py  … Discord から git pull
+```
+
+日常の運用フローは `workflow/github-basics.md` を参照してください。
+
+## workspace 構造
+
+```
+workspace/
+├── manga/          … 漫画原案・キャラクター設定
+├── quests/         … クエスト・プロット
+├── scenes/         … シーン構成・背景
+├── storyboards/    … コマ割り・ストーリーボード
+├── career/         … キャリアカード原稿
+├── metaverse/      … メタバース空間設計
+└── temp/           … 中間生成物（定期削除）
 ```
 
 ## 必要なもの（Windows）
@@ -27,26 +142,24 @@ HONRAI_FACTORY/
 |--------|------|
 | [Git for Windows](https://git-scm.com/download/win) | バージョン管理 |
 | [Node.js LTS](https://nodejs.org/) | Discord bot（Node.js） |
+| [Python 3.10+](https://www.python.org/) | 工場 Bot・スクリプト |
 | [Cursor](https://cursor.com/) | AI 支援エディタ |
 | PowerShell | ターミナル（Windows 標準） |
 
 ## クイックスタート（PowerShell）
 
 ```powershell
-# 1. リポジトリを clone（GitHub に上げた後）
 git clone https://github.com/<あなたのユーザー名>/HONRAI_FACTORY.git
 cd HONRAI_FACTORY
 
-# 2. Bot のセットアップ
+# Python 工場 Bot
 cd bot
-npm install
+python -m pip install -r requirements.txt
 Copy-Item .env.example .env
 # .env を編集してから:
-npm run deploy-commands
-npm start
+cd ..
+python -m bot.factory_bot
 ```
-
-Bot の詳しい手順は `bot/README.md` を参照してください。
 
 ## AI への依頼の仕方（初心者向け）
 
@@ -63,21 +176,6 @@ Bot の詳しい手順は `bot/README.md` を参照してください。
 - トークン等は **`.env` に置き、GitHub に上げない**
 
 詳細は `.cursorrules` と `CLAUDE.md` を参照してください。
-
-## GitHub への保管
-
-1. GitHub で空のリポジトリ `HONRAI_FACTORY` を作成
-2. ローカルで初回 push:
-
-```powershell
-git add .
-git commit -m "docs: AI工場ルールとDiscord bot開発の土台を追加"
-git branch -M main
-git remote add origin https://github.com/<あなたのユーザー名>/HONRAI_FACTORY.git
-git push -u origin main
-```
-
-日常の運用フローは `workflow/github-basics.md` を参照してください。
 
 ## ライセンス
 

@@ -1,0 +1,9 @@
+{
+  "world_name": "KAIDO_FIRE_ROUTE",
+  "theme": "火山の街道",
+  "route_length": 500,
+  "objects": ["鳥居", "溶岩", "宿場町", "橋"],
+  "characters": ["ホンライくん"],
+  "mood": "熱い・挑戦・敗者復活",
+  "target": "Spatial軽量版"
+}
