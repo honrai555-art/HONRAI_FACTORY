@@ -1,5 +1,7 @@
 # 環境変数・設定ファイル
 .env
+bot/.env
+*.env
 .env.local
 .env.*.local
 
@@ -59,6 +61,14 @@ models/
 
 # Node.js
 node_modules/
+
+# Blender 出力（FBX/glTF は大容量）
+blender/output_assets/**
+!blender/output_assets/.gitkeep
+
+# Unity Generated（Blender 搬入物）
+unityprojects/kaido-walk/Assets/Generated/**
+!unityprojects/kaido-walk/Assets/Generated/.gitkeep
 
 # ComfyUI・Unity 関連
 tools/comfyui/ComfyUI-master/output/

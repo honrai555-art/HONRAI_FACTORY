@@ -6,6 +6,9 @@ import psutil
 
 ROOT_DIR = Path(__file__).resolve().parents[2]
 LOG_DIR = ROOT_DIR / "logs"
+BLENDER_INPUT_DIR = ROOT_DIR / "blender" / "input_assets"
+BLENDER_OUTPUT_DIR = ROOT_DIR / "blender" / "output_assets"
+GENERATED_ASSETS_DIR = ROOT_DIR / "unityprojects" / "kaido-walk" / "Assets" / "Generated"
 
 
 def _gpu_usage() -> str:
@@ -43,6 +46,12 @@ def _is_process_running(keyword: str) -> bool:
     return False
 
 
+def _count_files(directory: Path, pattern: str) -> int:
+    if not directory.exists():
+        return 0
+    return len(list(directory.glob(pattern)))
+
+
 def _last_error(log_name: str) -> str:
     path = LOG_DIR / log_name
     if not path.exists():
@@ -58,8 +67,41 @@ def _last_error(log_name: str) -> str:
         return "error reading log"
 
 
+def _last_log_timestamp(log_name: str, keywords: tuple[str, ...]) -> str:
+    path = LOG_DIR / log_name
+    if not path.exists():
+        return "no log yet"
+
+    try:
+        lines = path.read_text(encoding="utf-8", errors="replace").splitlines()
+        for line in reversed(lines):
+            lower = line.lower()
+            if any(keyword in lower for keyword in keywords):
+                timestamp = line[:19] if len(line) >= 19 else "unknown time"
+                return f"{timestamp} | {line.strip()[:120]}"
+        return "status unknown"
+    except Exception:
+        return "error reading log"
+
+
+def _last_blender_status() -> str:
+    return _last_log_timestamp(
+        "blender_build.log",
+        ("complete", "failed", "processing:", "import complete"),
+    )
+
+
+def _last_unity_import_status() -> str:
+    return _last_log_timestamp(
+        "unity_import.log",
+        ("import complete", "imported", "failed", "starting"),
+    )
+
+
 def _last_unity_status() -> str:
-    path = LOG_DIR / "unity.log"
+    path = LOG_DIR / "unity_world_build.log"
+    if not path.exists():
+        path = LOG_DIR / "unity.log"
     if not path.exists():
         return "no log yet"
 
@@ -81,6 +123,13 @@ def get_status() -> str:
 
     manga_status = "RUNNING" if _is_process_running("watch_manga_output.py") else "STOPPED"
     unity_status = "RUNNING" if _is_process_running("unity") else "STOPPED"
+    blender_status = "RUNNING" if _is_process_running("blender.exe") else "STOPPED"
+
+    blender_input_count = _count_files(BLENDER_INPUT_DIR, "*.fbx")
+    blender_output_count = _count_files(BLENDER_OUTPUT_DIR, "*.glb")
+    generated_asset_count = _count_files(GENERATED_ASSETS_DIR, "*.glb") + _count_files(
+        GENERATED_ASSETS_DIR, "*.gltf"
+    )
 
     return "\n".join(
         [
@@ -94,10 +143,28 @@ def get_status() -> str:
             f"Status: {manga_status}",
             f"Error: {_last_error('manga.log')}",
             "",
+            "Blender Line",
+            "------------",
+            f"Status: {blender_status}",
+            f"Input FBX: {blender_input_count}",
+            f"Output glb: {blender_output_count}",
+            f"Last build: {_last_blender_status()}",
+            f"Error: {_last_error('blender_build.log')}",
+            "",
+            "Asset Watchdog",
+            "--------------",
+            f"Status: {'RUNNING' if _is_process_running('asset_watchdog.py') else 'STOPPED'}",
+            f"Input FBX: {blender_input_count}",
+            f"Last event: {_last_log_timestamp('asset_watchdog.log', ('detected', 'complete', 'failed', 'started'))}",
+            f"Error: {_last_error('asset_watchdog.log')}",
+            "",
             "Unity Line",
             "----------",
             f"Status: {unity_status}",
+            f"Generated assets: {generated_asset_count}",
+            f"Last import: {_last_unity_import_status()}",
+            f"Import error: {_last_error('unity_import.log')}",
             f"Build: {_last_unity_status()}",
-            f"Error: {_last_error('unity.log')}",
+            f"Build error: {_last_error('unity_world_build.log')}",
         ]
     )

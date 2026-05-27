@@ -10,6 +10,8 @@ GitHub や日常開発の **手順書** を置くフォルダです。
 | `github-basics.md` | clone / commit / push の基本 |
 | `powershell-setup.md` | Windows 環境の初期設定 |
 | `discord-bot-checklist.md` | Bot 公開前の確認リスト |
+| `blender-unity-pipeline.md` | Blender → Unity 物流・E2E 手順 |
+| `asset-watchdog.md` | FBX 自動監視ライン（`start_asset_watchdog.ps1`） |
 
 ## 原則
 

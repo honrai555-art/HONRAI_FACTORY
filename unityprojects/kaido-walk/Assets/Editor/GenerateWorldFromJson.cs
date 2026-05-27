@@ -34,6 +34,34 @@ public static class GenerateWorldFromJson
         public const string HonraiKun = "Assets/Prefabs/Characters/HonraiKun.prefab";
     }
 
+    private const string GeneratedAssetsDir = "Assets/Generated";
+
+    private static readonly Dictionary<string, string> ObjectSlugMap = new Dictionary<string, string>(StringComparer.OrdinalIgnoreCase)
+    {
+        { "鳥居", "torii" },
+        { "torii", "torii" },
+        { "橋", "bridge" },
+        { "bridge", "bridge" },
+        { "溶岩", "lava" },
+        { "lava", "lava" },
+        { "lava_rock", "lava_rock" },
+        { "宿場町", "post_town" },
+        { "posttown", "post_town" },
+        { "post_town", "post_town" },
+        { "森", "forest" },
+        { "forest", "forest" },
+        { "川", "river" },
+        { "river", "river" },
+        { "山", "mountain" },
+        { "mountain", "mountain" },
+        { "神社", "shrine" },
+        { "shrine", "shrine" },
+        { "火山", "volcano" },
+        { "volcano", "volcano" },
+        { "ホンライくん", "honrai_kun" },
+        { "honrai_kun", "honrai_kun" },
+    };
+
     [Serializable]
     private class WorldRequest
     {
@@ -194,10 +222,18 @@ public static class GenerateWorldFromJson
         }
 
         var spacing = Mathf.Max(20f, request.route_length / (float)(request.objects.Length + 1));
+        var startOffset = Mathf.Max(15f, spacing);
+        var characterBuffer = 12f;
+
         for (var i = 0; i < request.objects.Length; i++)
         {
             var objectName = request.objects[i];
-            var z = spacing * (i + 1);
+            var z = startOffset + spacing * i;
+            if (z < characterBuffer)
+            {
+                z = characterBuffer + spacing * 0.25f * i;
+            }
+
             var side = (i % 2 == 0) ? -1f : 1f;
             var position = new Vector3(side * 6f, 0f, z);
             PlaceWorldObject(parent, objectName, position, i);
@@ -206,12 +242,29 @@ public static class GenerateWorldFromJson
 
     private static void PlaceWorldObject(Transform parent, string objectName, Vector3 position, int index)
     {
+        var generatedAsset = TryLoadGeneratedAsset(objectName);
+        if (generatedAsset.Asset != null)
+        {
+            var instance = InstantiateGeneratedAsset(
+                generatedAsset.Asset,
+                parent,
+                $"{objectName}_{index}",
+                generatedAsset.Path);
+            instance.transform.position = position;
+            instance.transform.localScale = Vector3.one;
+            instance.transform.rotation = Quaternion.Euler(0f, UnityEngine.Random.Range(-15f, 15f), 0f);
+            Log($"Placed generated asset: {generatedAsset.Path} at {position}");
+            return;
+        }
+
         var prefab = TryLoadPrefab(objectName);
         if (prefab != null)
         {
             var instance = (GameObject)PrefabUtility.InstantiatePrefab(prefab, parent);
             instance.name = $"{objectName}_{index}";
             instance.transform.position = position;
+            instance.transform.localScale = Vector3.one;
+            instance.transform.rotation = Quaternion.Euler(0f, UnityEngine.Random.Range(-15f, 15f), 0f);
             Log($"Placed prefab: {objectName} at {position}");
             return;
         }
@@ -219,15 +272,21 @@ public static class GenerateWorldFromJson
         switch (objectName)
         {
             case "鳥居":
+            case "torii":
                 PlaceTorii(parent, position, index);
                 break;
             case "溶岩":
+            case "lava":
+            case "lava_rock":
                 PlaceLava(parent, position, index);
                 break;
             case "宿場町":
+            case "posttown":
+            case "post_town":
                 PlacePostTown(parent, position, index);
                 break;
             case "橋":
+            case "bridge":
                 PlaceBridge(parent, position, index);
                 break;
             default:
@@ -236,14 +295,109 @@ public static class GenerateWorldFromJson
         }
     }
 
+    private struct GeneratedAssetMatch
+    {
+        public GeneratedAssetMatch(GameObject asset, string path)
+        {
+            Asset = asset;
+            Path = path;
+        }
+
+        public GameObject Asset { get; }
+        public string Path { get; }
+    }
+
+    private static GeneratedAssetMatch TryLoadGeneratedAsset(string objectName)
+    {
+        foreach (var assetPath in BuildGeneratedAssetCandidates(objectName))
+        {
+            var asset = LoadImportedModel(assetPath);
+            if (asset != null)
+            {
+                return new GeneratedAssetMatch(asset, assetPath);
+            }
+        }
+
+        return new GeneratedAssetMatch(null, null);
+    }
+
+    private static IEnumerable<string> BuildGeneratedAssetCandidates(string objectName)
+    {
+        var seen = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
+        var slug = ResolveObjectSlug(objectName);
+
+        var names = new List<string> { slug, objectName, SanitizeFileName(objectName) };
+        foreach (var name in names)
+        {
+            if (string.IsNullOrWhiteSpace(name) || !seen.Add(name))
+            {
+                continue;
+            }
+
+            yield return $"{GeneratedAssetsDir}/{name}.glb";
+            yield return $"{GeneratedAssetsDir}/{name}.gltf";
+        }
+    }
+
+    private static string ResolveObjectSlug(string objectName)
+    {
+        if (ObjectSlugMap.TryGetValue(objectName, out var slug))
+        {
+            return slug;
+        }
+
+        return SanitizeFileName(objectName).ToLowerInvariant();
+    }
+
+    private static GameObject LoadImportedModel(string assetPath)
+    {
+        var prefab = AssetDatabase.LoadAssetAtPath<GameObject>(assetPath);
+        if (prefab != null)
+        {
+            return prefab;
+        }
+
+        var assets = AssetDatabase.LoadAllAssetsAtPath(assetPath);
+        foreach (var asset in assets)
+        {
+            if (asset is GameObject gameObject && gameObject.transform.parent == null)
+            {
+                return gameObject;
+            }
+        }
+
+        return null;
+    }
+
+    private static GameObject InstantiateGeneratedAsset(
+        GameObject asset,
+        Transform parent,
+        string instanceName,
+        string assetPath)
+    {
+        GameObject instance = null;
+
+        if (PrefabUtility.IsPartOfAnyPrefab(asset))
+        {
+            instance = (GameObject)PrefabUtility.InstantiatePrefab(asset, parent);
+        }
+        else
+        {
+            instance = UnityEngine.Object.Instantiate(asset, parent);
+        }
+
+        instance.name = instanceName;
+        return instance;
+    }
+
     private static GameObject TryLoadPrefab(string objectName)
     {
         var path = objectName switch
         {
-            "鳥居" => PrefabPaths.Torii,
-            "溶岩" => PrefabPaths.Lava,
-            "宿場町" => PrefabPaths.PostTown,
-            "橋" => PrefabPaths.Bridge,
+            "鳥居" or "torii" => PrefabPaths.Torii,
+            "溶岩" or "lava" => PrefabPaths.Lava,
+            "宿場町" or "posttown" or "post_town" => PrefabPaths.PostTown,
+            "橋" or "bridge" => PrefabPaths.Bridge,
             _ => null
         };
 
@@ -342,7 +496,21 @@ public static class GenerateWorldFromJson
 
     private static void PlaceCharacter(Transform parent, string characterName, Vector3 position, int index)
     {
-        var prefabPath = characterName == "ホンライくん" ? PrefabPaths.HonraiKun : null;
+        var generatedAsset = TryLoadGeneratedAsset(characterName);
+        if (generatedAsset.Asset != null)
+        {
+            var instance = InstantiateGeneratedAsset(
+                generatedAsset.Asset,
+                parent,
+                $"{characterName}_{index}",
+                generatedAsset.Path);
+            instance.transform.position = position;
+            instance.transform.localScale = Vector3.one;
+            Log($"Placed generated character asset: {generatedAsset.Path}");
+            return;
+        }
+
+        var prefabPath = characterName is "ホンライくん" or "honrai_kun" ? PrefabPaths.HonraiKun : null;
         if (!string.IsNullOrEmpty(prefabPath))
         {
             var prefab = AssetDatabase.LoadAssetAtPath<GameObject>(prefabPath);
@@ -356,7 +524,7 @@ public static class GenerateWorldFromJson
             }
         }
 
-        if (characterName == "ホンライくん")
+        if (characterName is "ホンライくん" or "honrai_kun")
         {
             var capsule = GameObject.CreatePrimitive(PrimitiveType.Capsule);
             capsule.name = $"HonraiKun_{index}";
@@ -524,19 +692,19 @@ public static class GenerateWorldFromJson
 
     private static string ResolveJsonPath(string unityProjectRoot, string factoryRoot)
     {
-        var projectJson = Path.Combine(unityProjectRoot, "world_request.json");
-        if (File.Exists(projectJson))
-        {
-            return projectJson;
-        }
-
         var factoryJson = Path.Combine(factoryRoot, "world_request.json");
         if (File.Exists(factoryJson))
         {
             return factoryJson;
         }
 
-        return projectJson;
+        var projectJson = Path.Combine(unityProjectRoot, "world_request.json");
+        if (File.Exists(projectJson))
+        {
+            return projectJson;
+        }
+
+        return factoryJson;
     }
 
     private static string GetUnityProjectRoot()

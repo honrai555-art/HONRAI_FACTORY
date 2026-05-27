@@ -1,0 +1,14 @@
+{
+  "world_name": "AUTO_20260527_221926",
+  "theme": "auto detected assets",
+  "route_length": 500,
+  "objects": [
+    "bridge",
+    "torii"
+  ],
+  "characters": [
+    "honrai_kun"
+  ],
+  "mood": "探索",
+  "target": "Spatial軽量版"
+}

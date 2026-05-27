@@ -110,16 +110,32 @@ integrations/
 ## Unity / Blender ライン
 
 ```
-unityprojects/
-├── kaido-walk/          … KAIDO WALK プロジェクト
-└── honrai-metaverse/    … メタバースプロジェクト
+blender/
+├── input_assets/        … slug 名 FBX を配置（例: torii.fbx）
+└── output_assets/       … 軽量化 glb 出力
+
+unityprojects/kaido-walk/Assets/Generated/  … Unity 搬入先
 
 scripts/
-├── unity_build.ps1      … Unity batchmode ビルド
-└── blender/             … Blender headless 自動化（予定）
+├── blender_build.ps1           … Blender 軽量化 + Unity import 自動連鎖
+├── import_generated_assets.ps1 … glb → Assets/Generated
+└── unity_world_build.ps1       … world_request.json から空間生成
 ```
 
-Discord から `!unity` で `scripts/unity_build.ps1` を起動できます。成果物は `builds/` に出力します。
+Discord コマンド:
+
+| コマンド | 処理 |
+|---------|------|
+| `!blender` | FBX 軽量化 → glb 生成 → Unity 自動 import |
+| `!unity` | import → 空間生成 |
+| `!world` | JSON 更新 → import → 空間生成 |
+
+詳細・E2E 手順: `workflow/blender-unity-pipeline.md`
+
+### FBX slug 命名（要約）
+
+- 小文字英数字 + underscore のみ（例: `torii.fbx`, `lava_rock.fbx`）
+- 日本語・スペース付きファイル名は NG
 
 ## GAS キャリアカードライン
 
