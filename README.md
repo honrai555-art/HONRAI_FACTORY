@@ -70,6 +70,29 @@ pipelines/
 
 統合実行の入口は `scripts/orchestrator.py` です。
 
+## 漫画ライン一括実行
+
+PowerShell:
+
+```powershell
+python scripts/orchestrator.py pipelines/manga.yaml
+```
+
+Discord:
+
+```
+!pipeline_manga
+```
+
+環境変数（任意）:
+
+| 変数 | 用途 |
+|------|------|
+| `OPENAI_API_KEY` | GPT 漫画生成 |
+| `DISCORD_WEBHOOK_URL` | 完了通知 |
+| `MANGA_PIPELINE_TYPE` | `4koma` または `normal`（既定: `4koma`） |
+| `MANGA_PIPELINE_INSTRUCTION` | 漫画生成の指示文 |
+
 ## integrations 構造
 
 外部サービスとの連携を `integrations/` に集約します。

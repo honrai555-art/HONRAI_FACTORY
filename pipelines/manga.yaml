@@ -1,0 +1,16 @@
+name: manga_factory
+description: GPT manga generation to ComfyUI image prompt pipeline
+steps:
+  - id: generate_manga_text
+    type: python
+    command: scripts/gpt/gpt_manga_generate.py
+    output: output/manga
+  - id: extract_comfy_prompts
+    type: python
+    command: scripts/comfy/extract_image_prompts.py
+    input: output/manga
+    output: output/manga/prompts_for_comfy
+  - id: notify_discord
+    type: python
+    command: scripts/notify_discord.py
+    input: output/manga

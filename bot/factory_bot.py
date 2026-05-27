@@ -16,6 +16,7 @@ from bot.commands.logs import get_latest_logs
 from bot.commands.manga import run_manga
 from bot.commands.comfy import run_comfy_test
 from bot.commands.status import get_status
+from bot.commands.pipeline_manga import run_pipeline_manga
 from bot.commands.unity import run_unity
 from bot.utils.logger import get_logger, log_exception
 
@@ -143,6 +144,17 @@ async def comfy_test_command(ctx: commands.Context) -> None:
         await send_command_result(ctx, "COMFY TEST ERROR", str(e))
 
 
+@bot.command(name="pipeline_manga")
+async def pipeline_manga_command(ctx: commands.Context) -> None:
+    logger.info("Command received: pipeline_manga")
+    try:
+        result = run_pipeline_manga()
+        await ctx.reply(f"✅ 漫画ライン実行完了\n```text\n{result[:1800]}\n```", mention_author=False)
+    except Exception as exc:
+        log_exception(logger, "pipeline_manga failed", exc)
+        await ctx.reply(f"❌ 漫画ライン実行失敗\n```text\n{str(exc)[:1800]}\n```", mention_author=False)
+
+
 @bot.command(name="unity")
 async def unity_command(ctx: commands.Context) -> None:
     logger.info("Command received: unity")
@@ -176,6 +188,7 @@ async def help_command(ctx: commands.Context) -> None:
                 "!status   - CPU/RAM/GPU and line status",
                 "!gitpull  - Run git pull in PROJECT_ROOT",
                 "!manga    - Start Manga generation watcher",
+                "!pipeline_manga - Run GPT -> ComfyUI -> Discord pipeline",
                 "!unity    - Start Unity build script",
                 "!logs     - Show latest bot and error logs",
                 "!restart  - Restart the bot process",
