@@ -1,0 +1,6 @@
+rule_id,rule_type,rule_value,notes
+CHAR_001,naming_pattern,snake_case_slug,3Dアセット（例: honrai_kun.fbx）
+CHAR_002,forbidden_storage,real_name_phone_address,個人情報は保存しない
+CHAR_003,reference_source,SPA_MODEL/shared-data,タグ・称号の正本
+CHAR_004,display_name_max,32,カード表示名の目安文字数
+CHAR_005,tag_separator,pipe,CSV内複数タグは T001|T002 形式
