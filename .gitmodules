@@ -1,0 +1,7 @@
+[submodule "github/career-card-gas/career-card-gas"]
+	path = github/career-card-gas/career-card-gas
+	url = https://github.com/honrai555-art/career-card-gas.git
+
+[submodule "tools/stable diffusion/stable-diffusion-webui"]
+	path = tools/stable diffusion/stable-diffusion-webui
+	url = https://github.com/AUTOMATIC1111/stable-diffusion-webui.git
