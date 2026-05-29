@@ -7,6 +7,7 @@ import json
 import os
 import sys
 import urllib.request
+import uuid
 from pathlib import Path
 
 
@@ -25,7 +26,11 @@ def read_log_tail(log_path: Path, lines: int) -> str:
     return "\n".join(content[-lines:])
 
 
-def send_webhook(webhook_url: str, content: str) -> None:
+def send_webhook(webhook_url: str, content: str, preview_path: Path | None = None) -> None:
+    if preview_path and preview_path.exists():
+        send_webhook_with_file(webhook_url, content, preview_path)
+        return
+
     payload = json.dumps({"content": content, "username": "HONRAI_FACTORY"}, ensure_ascii=False).encode("utf-8")
     request = urllib.request.Request(
         webhook_url,
@@ -42,6 +47,40 @@ def send_webhook(webhook_url: str, content: str) -> None:
             raise RuntimeError(f"Discord webhook failed ({response.getcode()}): {body}")
 
 
+def send_webhook_with_file(webhook_url: str, content: str, preview_path: Path) -> None:
+    boundary = f"----HONRAI_FACTORY_{uuid.uuid4().hex}"
+    payload = json.dumps({"content": content, "username": "HONRAI_FACTORY"}, ensure_ascii=False)
+    file_name = preview_path.name or "preview.png"
+    file_bytes = preview_path.read_bytes()
+
+    body = bytearray()
+    body.extend(f"--{boundary}\r\n".encode("utf-8"))
+    body.extend(b'Content-Disposition: form-data; name="payload_json"\r\n')
+    body.extend(b"Content-Type: application/json; charset=utf-8\r\n\r\n")
+    body.extend(payload.encode("utf-8"))
+    body.extend(b"\r\n")
+    body.extend(f"--{boundary}\r\n".encode("utf-8"))
+    body.extend(f'Content-Disposition: form-data; name="files[0]"; filename="{file_name}"\r\n'.encode("utf-8"))
+    body.extend(b"Content-Type: image/png\r\n\r\n")
+    body.extend(file_bytes)
+    body.extend(b"\r\n")
+    body.extend(f"--{boundary}--\r\n".encode("utf-8"))
+
+    request = urllib.request.Request(
+        webhook_url,
+        data=bytes(body),
+        method="POST",
+        headers={
+            "Content-Type": f"multipart/form-data; boundary={boundary}",
+            "User-Agent": "HONRAI_FACTORY/1.0",
+        },
+    )
+    with urllib.request.urlopen(request) as response:
+        if response.getcode() >= 400:
+            body_text = response.read().decode("utf-8", errors="replace")
+            raise RuntimeError(f"Discord webhook failed ({response.getcode()}): {body_text}")
+
+
 def build_message(
     *,
     status: str,
@@ -50,6 +89,7 @@ def build_message(
     error: str,
     log_file: Path | None,
     log_lines: int,
+    preview_path: Path | None,
 ) -> str:
     if status == "pipeline_success":
         if output_files:
@@ -60,7 +100,8 @@ def build_message(
             body = (
                 "HONRAI_FACTORY: Blender build + Unity import complete.\n\n"
                 f"Generated glb ({len(output_files)}):\n{file_lines}\n\n"
-                "Unity path: SPA_MODEL/02_game-object/unity/kaido-walk/Assets/Generated/"
+                + ("Preview image: attached\n" if preview_path and preview_path.exists() else "Preview image: not found\n")
+                + "Unity path: SPA_MODEL/02_game-object/unity/kaido-walk/Assets/Generated/"
             )
         else:
             body = "HONRAI_FACTORY: Blender build + Unity import complete."
@@ -103,10 +144,12 @@ def main() -> None:
     parser.add_argument("--error", default="", help="Error message")
     parser.add_argument("--log-file", default="", help="Log file path for tail output")
     parser.add_argument("--log-lines", type=int, default=20, help="Number of log lines to include")
+    parser.add_argument("--preview", default="", help="Preview PNG path to attach to Discord")
     args = parser.parse_args()
 
     repo_root = Path(args.repo_root or Path(__file__).resolve().parents[3])
     log_path = Path(args.log_file) if args.log_file else None
+    preview_path = Path(args.preview) if args.preview else None
 
     if not args.webhook_url:
         print("ERROR: DISCORD_WEBHOOK_URL is required.", file=sys.stderr)
@@ -119,8 +162,9 @@ def main() -> None:
         error=args.error,
         log_file=log_path,
         log_lines=args.log_lines,
+        preview_path=preview_path,
     )
-    send_webhook(args.webhook_url, content[:2000])
+    send_webhook(args.webhook_url, content[:2000], preview_path)
     print("Discord notification sent.")
 
 

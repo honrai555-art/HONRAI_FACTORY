@@ -633,9 +633,20 @@ public static class GenerateWorldFromJson
         message.AppendLine($"preview path: {previewPath}");
         message.AppendLine($"date time: {DateTime.Now:yyyy-MM-dd HH:mm:ss}");
 
-        var payload = "{\"content\":" + JsonEscape(message.ToString()) + "}";
-        PostJson(webhookUrl, payload);
-        Log("Discord notification sent.");
+        var payload = "{\"content\":" + JsonEscape(message.ToString()) + ",\"username\":\"HONRAI_FACTORY\"}";
+        PostDiscord(webhookUrl, payload, previewPath);
+        Log(File.Exists(previewPath) ? "Discord notification sent with preview image." : "Discord notification sent without preview image.");
+    }
+
+    private static void PostDiscord(string url, string jsonPayload, string previewPath)
+    {
+        if (!string.IsNullOrWhiteSpace(previewPath) && File.Exists(previewPath))
+        {
+            PostMultipart(url, jsonPayload, previewPath);
+            return;
+        }
+
+        PostJson(url, jsonPayload);
     }
 
     private static void PostJson(string url, string jsonPayload)
@@ -650,6 +661,43 @@ public static class GenerateWorldFromJson
         using (var stream = request.GetRequestStream())
         {
             stream.Write(bytes, 0, bytes.Length);
+        }
+
+        using var response = (HttpWebResponse)request.GetResponse();
+        if ((int)response.StatusCode >= 400)
+        {
+            throw new WebException($"Discord webhook failed: {(int)response.StatusCode} {response.StatusDescription}");
+        }
+    }
+
+    private static void PostMultipart(string url, string jsonPayload, string previewPath)
+    {
+        var boundary = "----HONRAI_FACTORY_" + Guid.NewGuid().ToString("N");
+        var request = (HttpWebRequest)WebRequest.Create(url);
+        request.Method = "POST";
+        request.ContentType = "multipart/form-data; boundary=" + boundary;
+
+        var fileName = Path.GetFileName(previewPath);
+        var fileBytes = File.ReadAllBytes(previewPath);
+        var header =
+            $"--{boundary}\r\n" +
+            "Content-Disposition: form-data; name=\"payload_json\"\r\n" +
+            "Content-Type: application/json; charset=utf-8\r\n\r\n" +
+            jsonPayload +
+            "\r\n" +
+            $"--{boundary}\r\n" +
+            $"Content-Disposition: form-data; name=\"files[0]\"; filename=\"{fileName}\"\r\n" +
+            "Content-Type: image/png\r\n\r\n";
+        var footer = $"\r\n--{boundary}--\r\n";
+        var headerBytes = Encoding.UTF8.GetBytes(header);
+        var footerBytes = Encoding.UTF8.GetBytes(footer);
+        request.ContentLength = headerBytes.Length + fileBytes.Length + footerBytes.Length;
+
+        using (var stream = request.GetRequestStream())
+        {
+            stream.Write(headerBytes, 0, headerBytes.Length);
+            stream.Write(fileBytes, 0, fileBytes.Length);
+            stream.Write(footerBytes, 0, footerBytes.Length);
         }
 
         using var response = (HttpWebResponse)request.GetResponse();

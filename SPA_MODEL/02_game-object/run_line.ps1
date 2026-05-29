@@ -52,7 +52,8 @@ try {
             (Join-Path $gp.LineScripts "notify_blender_build.py"),
             "--repo-root", $repo,
             "--webhook-url", $webhook,
-            "--status", "pipeline_success"
+            "--status", "pipeline_success",
+            "--preview", (Join-Path $gp.BuildPreviews "preview.png")
         )
         foreach ($g in $glbs) { $notifyArgs += @("--output-file", $g.FullName) }
         & @notifyArgs

@@ -10,6 +10,7 @@ import subprocess
 import sys
 import time
 import urllib.request
+import uuid
 from dataclasses import dataclass
 from datetime import datetime
 from pathlib import Path
@@ -71,21 +72,19 @@ class AssetWatchdog:
         with self.log_path.open("a", encoding="utf-8") as log_file:
             log_file.write(line + "\n")
 
-    def send_discord(self, message: str) -> None:
+    def send_discord(self, message: str, image_path: Path | None = None) -> None:
         if not self.webhook_url:
             self.append_log("DISCORD_WEBHOOK_URL is not set. Notification skipped.", "WARN")
             return
 
-        payload = json.dumps(
-            {"content": f"HONRAI_FACTORY: {message}", "username": "HONRAI_FACTORY"},
-            ensure_ascii=False,
-        ).encode("utf-8")
+        content = f"HONRAI_FACTORY: {message}"
+        data, content_type = self.build_discord_payload(content, image_path)
         request = urllib.request.Request(
             self.webhook_url,
-            data=payload,
+            data=data,
             method="POST",
             headers={
-                "Content-Type": "application/json",
+                "Content-Type": content_type,
                 "User-Agent": "HONRAI_FACTORY/1.0",
             },
         )
@@ -97,6 +96,30 @@ class AssetWatchdog:
             self.append_log(f"Discord notification sent: {message[:120]}")
         except Exception as exc:
             self.append_log(f"Discord notification failed: {exc}", "ERROR")
+
+    def build_discord_payload(self, content: str, image_path: Path | None = None) -> tuple[bytes, str]:
+        payload = json.dumps(
+            {"content": content, "username": "HONRAI_FACTORY"},
+            ensure_ascii=False,
+        )
+        if not image_path or not image_path.exists():
+            return payload.encode("utf-8"), "application/json"
+
+        boundary = f"----HONRAI_FACTORY_{uuid.uuid4().hex}"
+        file_name = image_path.name or "preview.png"
+        body = bytearray()
+        body.extend(f"--{boundary}\r\n".encode("utf-8"))
+        body.extend(b'Content-Disposition: form-data; name="payload_json"\r\n')
+        body.extend(b"Content-Type: application/json; charset=utf-8\r\n\r\n")
+        body.extend(payload.encode("utf-8"))
+        body.extend(b"\r\n")
+        body.extend(f"--{boundary}\r\n".encode("utf-8"))
+        body.extend(f'Content-Disposition: form-data; name="files[0]"; filename="{file_name}"\r\n'.encode("utf-8"))
+        body.extend(b"Content-Type: image/png\r\n\r\n")
+        body.extend(image_path.read_bytes())
+        body.extend(b"\r\n")
+        body.extend(f"--{boundary}--\r\n".encode("utf-8"))
+        return bytes(body), f"multipart/form-data; boundary={boundary}"
 
     def load_state(self) -> dict:
         if not self.state_path.exists():
@@ -231,10 +254,11 @@ class AssetWatchdog:
 
             if self.preview_path.exists():
                 self.send_discord(
-                    "Preview complete\n"
+                    "Preview complete (image attached)\n"
                     f"preview: {self.preview_path}\n"
                     f"world_name: {request['world_name']}\n"
-                    f"objects: {', '.join(request['objects'])}"
+                    f"objects: {', '.join(request['objects'])}",
+                    self.preview_path,
                 )
             else:
                 self.send_discord(
