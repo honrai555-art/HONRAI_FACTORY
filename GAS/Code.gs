@@ -103,9 +103,9 @@ function generateLayout(cardId) {
 }
 
 function requestAgiLayout_(struct) {
-  const apiKey = PropertiesService.getScriptProperties().getProperty('OPENAI_API_KEY');
-  const mockMode = PropertiesService.getScriptProperties().getProperty('MOCK_AGI') === 'true';
-  if (mockMode) {
+  const scriptProperties = PropertiesService.getScriptProperties();
+  const apiKey = scriptProperties.getProperty('OPENAI_API_KEY');
+  if (isMockAgiEnabled_(scriptProperties)) {
     return buildMockLayout_(struct);
   }
   if (!apiKey) {
@@ -186,6 +186,10 @@ function requestAgiLayout_(struct) {
   const parsed = JSON.parse(body);
   const outputText = extractResponseText_(parsed);
   return JSON.parse(outputText);
+}
+
+function isMockAgiEnabled_(scriptProperties) {
+  return String(scriptProperties.getProperty('MOCK_AGI') || '').trim().toLowerCase() === 'true';
 }
 
 function getCardSheet_() {
