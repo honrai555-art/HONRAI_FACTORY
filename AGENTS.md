@@ -62,3 +62,37 @@ HONRAI 世界は 20 の基本タイプで構成されます。
 - ログは日付付きファイルまたはプロジェクト別ファイルで管理する。
 - 詳細ログと概要ログを分け、必要に応じてフィルタできるようにする。
 - `logs/` には不要な一時ログを残さず、定期的に整理する。
+
+## Cursor Cloud specific instructions
+
+### Services overview
+
+This repo has **two Discord bots** (separate processes, same `bot/` directory):
+
+| Bot | Runtime | Entry point | Framework |
+|-----|---------|-------------|-----------|
+| Factory Bot (main) | Python 3.10+ | `python3 -m bot.factory_bot` (from repo root) | discord.py |
+| Learning scaffold | Node.js ≥ 18 | `node src/index.js` (from `bot/`) | discord.js v14 |
+
+Both require `DISCORD_TOKEN` in `bot/.env`. Without a valid token they exit with `LoginFailure` / `TokenInvalid` — this is expected.
+
+### Running and testing
+
+- **Python tests**: `python3 test_commands.py` (from repo root) — exercises `!status`, `!manga`, `!unity` commands offline.
+- **Python bot imports**: all 12 command/utility modules load with no errors.
+- **Node.js syntax check**: `node -c src/index.js` (from `bot/`).
+- No ESLint config or CI lint workflows exist for the main project (the ComfyUI tool under `tools/comfyui/` has its own workflows but is independent).
+- Use `python3` instead of `python` in this environment (no `python` symlink by default).
+
+### Environment file
+
+`bot/.env` must exist before running either bot. Create it from `bot/.env.example` if missing:
+```
+cp bot/.env.example bot/.env
+```
+Then set `DISCORD_TOKEN` to a valid token. Other keys (`OPENAI_API_KEY`, `UNITY_EXE`, etc.) are optional for basic bot operation.
+
+### Gotchas
+
+- The `tools/comfyui/` directory is a large vendored copy of ComfyUI with heavy ML dependencies — **do not** install its `requirements.txt` unless working specifically on the ComfyUI pipeline.
+- `pip install` defaults to `--user` in this environment; packages go to `~/.local/lib/`. This is fine for dev.
