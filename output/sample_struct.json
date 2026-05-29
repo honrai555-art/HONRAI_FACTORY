@@ -1,0 +1,36 @@
+{
+  "card_id": "CM001",
+  "type": "主人公",
+  "fit_score": 72,
+  "phase": "探索",
+  "role_candidate": "explorer",
+  "decision": {
+    "stop": [
+      "目的のない応募",
+      "過去職種への固定観念"
+    ],
+    "keep": [
+      "顧客理解",
+      "現場改善"
+    ],
+    "start": [
+      "ポートフォリオ整備",
+      "AIツール検証"
+    ]
+  },
+  "career_material": {
+    "experience": [
+      "営業企画",
+      "業務改善"
+    ],
+    "skill": [
+      "データ分析",
+      "プロンプト設計"
+    ],
+    "environment": [
+      "リモート可",
+      "少人数チーム"
+    ],
+    "desired_change": "創造性を活かせるAIプロダクト職へ移る"
+  }
+}
