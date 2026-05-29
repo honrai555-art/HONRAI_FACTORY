@@ -219,3 +219,4 @@ python -m bot.factory_bot
 ## ライセンス
 
 未定（必要に応じて追加してください）。
+Codex permission test 2026-05-29
