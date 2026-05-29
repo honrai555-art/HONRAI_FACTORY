@@ -62,3 +62,32 @@ HONRAI 世界は 20 の基本タイプで構成されます。
 - ログは日付付きファイルまたはプロジェクト別ファイルで管理する。
 - 詳細ログと概要ログを分け、必要に応じてフィルタできるようにする。
 - `logs/` には不要な一時ログを残さず、定期的に整理する。
+
+## Cursor Cloud specific instructions
+
+### Services overview
+
+| Service | Language | Entry point | Run command |
+|---------|----------|-------------|-------------|
+| Python Factory Bot | Python 3.10+ | `bot/factory_bot.py` | `python -m bot.factory_bot` (from repo root) |
+| Node.js Discord Bot | Node.js 18+ | `bot/src/index.js` | `cd bot && npm start` or `npm run dev` |
+| Orchestrator | Python | `scripts/orchestrator.py` | `python scripts/orchestrator.py pipelines/<name>.yaml` |
+
+### Required secrets
+
+- `DISCORD_TOKEN` — the only hard requirement. Without it, both bots exit immediately.
+- Copy `bot/.env.example` to `bot/.env` and fill in the token. The Python bot reads from `bot/.env` via `python-dotenv`.
+- The Node.js bot also reads `DISCORD_TOKEN` from `bot/.env`.
+
+### Lint and test
+
+- **Python lint**: `python3 -m ruff check bot/ scripts/ --exclude tools/ --exclude SPA_MODEL/` (15 pre-existing warnings in the codebase).
+- **Node.js syntax**: `node --check bot/src/index.js` — no ESLint config exists.
+- **No automated test suite**: verify manually by importing bot modules and running command functions (e.g. `from bot.commands.status import get_status; get_status()`).
+
+### Gotchas
+
+- `tools/comfyui/` is a vendored copy of ComfyUI with its own `requirements.txt` and `pyproject.toml`. Do **not** install those unless working on ComfyUI integration.
+- Many scripts in `scripts/` are PowerShell (`.ps1`) intended for Windows. On Linux, only the Python scripts are runnable.
+- The bot's `_validate_startup()` raises `RuntimeError` if `DISCORD_TOKEN` is unset — this is intentional and correct.
+- Logs are written to `logs/` at the repo root (created automatically by `bot/utils/logger.py`).
