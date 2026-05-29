@@ -1,0 +1,314 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <base target="_top">
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>HONRAI AGI - KAIDO WALK Generator</title>
+  <style>
+    :root {
+      color-scheme: dark;
+      --bg: #07111f;
+      --panel: #0f1d2f;
+      --panel-light: #172941;
+      --accent: #38d5ff;
+      --accent-2: #f6c453;
+      --text: #f7fbff;
+      --muted: #a7b7c9;
+      --danger: #ff6b6b;
+    }
+
+    * {
+      box-sizing: border-box;
+    }
+
+    body {
+      margin: 0;
+      min-height: 100vh;
+      font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+      background: radial-gradient(circle at top left, rgba(56, 213, 255, 0.18), transparent 32rem), var(--bg);
+      color: var(--text);
+    }
+
+    main {
+      width: min(1120px, calc(100% - 32px));
+      margin: 0 auto;
+      padding: 32px 0 48px;
+    }
+
+    header {
+      margin-bottom: 24px;
+    }
+
+    h1 {
+      margin: 0 0 8px;
+      font-size: clamp(1.8rem, 4vw, 3.25rem);
+      letter-spacing: 0.02em;
+    }
+
+    .lead {
+      margin: 0;
+      color: var(--muted);
+      line-height: 1.7;
+    }
+
+    .grid {
+      display: grid;
+      grid-template-columns: minmax(0, 1fr) minmax(360px, 0.9fr);
+      gap: 20px;
+      align-items: start;
+    }
+
+    section {
+      background: rgba(15, 29, 47, 0.9);
+      border: 1px solid rgba(255, 255, 255, 0.08);
+      border-radius: 20px;
+      box-shadow: 0 18px 60px rgba(0, 0, 0, 0.28);
+      padding: 20px;
+    }
+
+    .form-grid {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 14px;
+    }
+
+    label {
+      display: grid;
+      gap: 6px;
+      color: var(--muted);
+      font-size: 0.92rem;
+      font-weight: 700;
+    }
+
+    input,
+    textarea,
+    select {
+      width: 100%;
+      border: 1px solid rgba(255, 255, 255, 0.12);
+      border-radius: 12px;
+      background: var(--panel-light);
+      color: var(--text);
+      font: inherit;
+      padding: 10px 12px;
+      outline: none;
+    }
+
+    textarea {
+      min-height: 86px;
+      resize: vertical;
+    }
+
+    input:focus,
+    textarea:focus,
+    select:focus {
+      border-color: var(--accent);
+      box-shadow: 0 0 0 3px rgba(56, 213, 255, 0.18);
+    }
+
+    .full {
+      grid-column: 1 / -1;
+    }
+
+    .actions {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 12px;
+      margin-top: 18px;
+    }
+
+    button {
+      border: 0;
+      border-radius: 999px;
+      color: #04111d;
+      cursor: pointer;
+      font-weight: 800;
+      padding: 12px 18px;
+      background: var(--accent);
+      transition: transform 0.15s ease, opacity 0.15s ease;
+    }
+
+    button.secondary {
+      background: var(--accent-2);
+    }
+
+    button:disabled {
+      cursor: wait;
+      opacity: 0.65;
+    }
+
+    button:not(:disabled):hover {
+      transform: translateY(-1px);
+    }
+
+    .status {
+      min-height: 24px;
+      margin-top: 14px;
+      color: var(--muted);
+      font-weight: 700;
+    }
+
+    .status.error {
+      color: var(--danger);
+    }
+
+    pre {
+      min-height: 520px;
+      overflow: auto;
+      margin: 0;
+      border-radius: 14px;
+      background: #040a12;
+      color: #d7f7ff;
+      padding: 16px;
+      line-height: 1.55;
+      white-space: pre-wrap;
+      word-break: break-word;
+    }
+
+    .pipeline {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+      margin-top: 16px;
+    }
+
+    .pipeline span {
+      border: 1px solid rgba(56, 213, 255, 0.3);
+      border-radius: 999px;
+      color: #cceefa;
+      padding: 6px 10px;
+      font-size: 0.86rem;
+    }
+
+    @media (max-width: 860px) {
+      .grid,
+      .form-grid {
+        grid-template-columns: 1fr;
+      }
+    }
+  </style>
+</head>
+<body>
+  <main>
+    <header>
+      <h1>HONRAI AGI<br>Data → Transform → Place Engine</h1>
+      <p class="lead">キャリアカードを保存し、経験を3Dオブジェクト化して、KAIDO WALK用の <code>layout_command.json</code> を生成します。</p>
+      <div class="pipeline" aria-label="pipeline">
+        <span>Career Card</span><span>Transform AGI</span><span>Object Recipe JSON</span><span>Placement AGI</span><span>Layout Command JSON</span>
+      </div>
+    </header>
+
+    <div class="grid">
+      <section>
+        <h2>入力フォーム</h2>
+        <form id="cardForm">
+          <div class="form-grid">
+            <label>タイプ
+              <select name="type">
+                <option value="主人公">主人公</option>
+                <option value="相棒">相棒</option>
+                <option value="ライバル">ライバル</option>
+                <option value="メンター">メンター</option>
+                <option value="サポートAI">サポートAI</option>
+              </select>
+            </label>
+            <label>適合率
+              <input name="fit_score" type="number" min="0" max="100" value="80" placeholder="80">
+            </label>
+            <label>フェーズ
+              <input name="phase" value="探索" placeholder="探索 / 育成 / 仕事化">
+            </label>
+            <label>役割
+              <input name="role" value="企画者" placeholder="企画者">
+            </label>
+            <label class="full">経験
+              <textarea name="experience" placeholder="例：イベント開催10回">イベント開催10回</textarea>
+            </label>
+            <label>スキル
+              <textarea name="skill" placeholder="例：企画">企画</textarea>
+            </label>
+            <label>環境
+              <textarea name="environment" placeholder="例：海">海</textarea>
+            </label>
+            <label class="full">感情
+              <textarea name="emotion" placeholder="例：仲間作りが楽しい">仲間作りが楽しい</textarea>
+            </label>
+            <label>やめる
+              <textarea name="stop" placeholder="例：単発で終わる活動"></textarea>
+            </label>
+            <label>残す
+              <textarea name="keep" placeholder="例：交流の場"></textarea>
+            </label>
+            <label class="full">やる
+              <textarea name="start" placeholder="例：定期開催を始める"></textarea>
+            </label>
+          </div>
+          <div class="actions">
+            <button type="button" id="saveButton">保存</button>
+            <button type="button" id="generateButton" class="secondary">街道生成</button>
+          </div>
+          <div id="status" class="status" role="status">待機中</div>
+        </form>
+      </section>
+
+      <section>
+        <h2>layout_command.json</h2>
+        <pre id="jsonOutput">{}</pre>
+      </section>
+    </div>
+  </main>
+
+  <script>
+    const form = document.getElementById('cardForm');
+    const statusEl = document.getElementById('status');
+    const outputEl = document.getElementById('jsonOutput');
+    const saveButton = document.getElementById('saveButton');
+    const generateButton = document.getElementById('generateButton');
+
+    function readCard() {
+      const data = new FormData(form);
+      return Object.fromEntries(data.entries());
+    }
+
+    function setBusy(isBusy, message) {
+      saveButton.disabled = isBusy;
+      generateButton.disabled = isBusy;
+      statusEl.classList.remove('error');
+      statusEl.textContent = message;
+    }
+
+    function showError(error) {
+      saveButton.disabled = false;
+      generateButton.disabled = false;
+      statusEl.classList.add('error');
+      statusEl.textContent = error && error.message ? error.message : String(error);
+    }
+
+    function printJson(value) {
+      outputEl.textContent = JSON.stringify(value, null, 2);
+    }
+
+    saveButton.addEventListener('click', () => {
+      setBusy(true, 'CARD_MASTERへ保存中...');
+      google.script.run
+        .withSuccessHandler((card) => {
+          setBusy(false, `保存成功: ${card.card_id}`);
+          printJson(card);
+        })
+        .withFailureHandler(showError)
+        .saveCard(readCard());
+    });
+
+    generateButton.addEventListener('click', () => {
+      setBusy(true, 'Transform AGI → Placement AGI を実行中...');
+      google.script.run
+        .withSuccessHandler((result) => {
+          setBusy(false, `街道生成成功: ${result.card_id}`);
+          printJson(result.layout_command_json);
+        })
+        .withFailureHandler(showError)
+        .generateKaido(readCard());
+    });
+  </script>
+</body>
+</html>
