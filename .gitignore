@@ -82,3 +82,26 @@ unityprojects/*/*.sln
 # GitHub 関連
 github/career-card-gas/node_modules/
 github/career-card-gas/package-lock.json
+
+# HONRAI generated artifacts / previews
+BuildPreviews/
+**/BuildPreviews/
+**/output/
+**/logs/
+**/.venv/
+**/__pycache__/
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+.cache/
+
+# SPA_MODEL line generated assets
+SPA_MODEL/*/output/
+SPA_MODEL/*/logs/
+SPA_MODEL/*/BuildPreviews/
+SPA_MODEL/*/exports/**
+!SPA_MODEL/*/exports/.gitkeep
+SPA_MODEL/*/blender/output_assets/**
+!SPA_MODEL/*/blender/output_assets/.gitkeep
+SPA_MODEL/*/unity/*/Assets/Generated/**
+!SPA_MODEL/*/unity/*/Assets/Generated/.gitkeep
