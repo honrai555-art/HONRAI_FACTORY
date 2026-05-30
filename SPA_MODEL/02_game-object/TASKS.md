@@ -11,3 +11,8 @@
 - [x] `run_line.ps1` フルパイプライン
 - [x] Bot / status パス更新
 - [ ] E2E: 本番 Blender+Unity+Discord（手元で `.\run_line.ps1`）
+
+## 成長DB中心構造
+- 目的: 成長DBを増やす
+- 資産: 成長DB
+- KPI: 更新率

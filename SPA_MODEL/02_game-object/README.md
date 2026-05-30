@@ -127,3 +127,8 @@ Assets/Generated/   … glb 搬入先
 ## 最終更新
 
 Sランク整備: README必須項目を統合し、Git管理対象外ルールとKPIを明記。
+
+## 成長DB中心構造
+- 目的: 成長DBを増やす
+- 資産: 成長DB
+- KPI: 更新率

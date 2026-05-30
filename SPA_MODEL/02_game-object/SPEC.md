@@ -11,3 +11,8 @@ glb、Generated Prefab、プレビュー画像。
 `!blender` 後に Generated にアセットが増える。
 ## 失敗条件
 パス不一致、手動 Unity 必須、通知なし。
+
+## 成長DB中心構造
+- 目的: 成長DBを増やす
+- 資産: 成長DB
+- KPI: 更新率
