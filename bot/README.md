@@ -1,10 +1,10 @@
 # HONRAI_FACTORY Bot
 
-このフォルダには **2 種類の Bot** があります。用途に応じて使い分けてください。
+このフォルダには **2 種類の Bot** があります。現在の主目的は Discord を遠隔操作入口ではなく、完成通知・エラー通知・画像プレビュー共有の通知センターとして使うことです。用途に応じて使い分けてください。
 
 | 種類 | 入口 | 用途 |
 |------|------|------|
-| **工場 Bot（本番）** | `factory_bot.py` | ComfyUI / Unity / git pull など工場操作 |
+| **工場 Bot（本番）** | `factory_bot.py` | 通知センター運用と、ComfyUI / Unity / git pull などの補助操作 |
 | **学習用 scaffold** | `src/index.js` | discord.js v14 の最小構成（`/ping` など） |
 
 Windows + PowerShell 前提、初心者向けに手順をまとめています。
@@ -32,7 +32,7 @@ bot/
 
 ## A. 工場 Bot（Python / discord.py）
 
-工場の自動化コマンド（manga / comfy / unity / gitpull など）を Discord から実行します。
+工場 Bot は残しますが、Discordからの自動化コマンド（manga / comfy / unity / gitpull など）は今後の主軸ではありません。主役は ChatGPT / Codex / GitHub で、Discordは完成通知・エラー通知・`preview.png` の画像付き共有を受け取る通知センターとして運用します。
 
 ### セットアップ（PowerShell）
 
@@ -55,6 +55,17 @@ notepad .env
 cd C:\Users\honra\HONRAI_FACTORY
 python -m bot.factory_bot
 ```
+
+### 通知センターとして維持するもの
+
+- 漫画プレビュー
+- Blender生成プレビュー
+- Unity `BuildPreviews/preview.png`
+- エラー通知
+- 完了通知
+
+`!manga` / `!unity` / `!blender` / `!gitpull` などの既存コマンドは削除しません。ただし、これらは不明な処理も含めて補助機能として整理し、通知と画像プレビューの安定性を優先します。
+
 
 ---
 
