@@ -1,5 +1,48 @@
 # 02_game-object — ゲームオブジェクト製造ライン
 
+## 目的
+FBX素材をBlenderで軽量化し、glb化してUnityへ搬入し、HONRAI世界のワールド生成や3Dプレビューに使えるゲームオブジェクトを生み出す製造ラインです。Blender → Unity import → Unity world → Discord通知までを一連の再現可能な工程として管理します。
+
+## 入力
+- `SPA_MODEL/02_game-object/blender/input_assets/*.fbx`（小文字slug命名。例: `torii.fbx`, `honrai_kun.fbx`）
+- `SPA_MODEL/02_game-object/unity/kaido-walk/world_request.json`
+- `SPA_MODEL/shared-data/character_rules.csv`（FBX slug）
+- `SPA_MODEL/shared-data/tags.csv` と `SPA_MODEL/shared-data/world_rules.md`
+- 環境変数: `PROJECT_ROOT`, `BLENDER_EXE`, `UNITY_EXE`, `DISCORD_WEBHOOK_URL`（`bot/.env`は人間が管理し、Codexは編集しない）
+
+## 処理
+1. README、`SPEC.md`、`TASKS.md`、既存ファイルを確認する
+2. FBXを`blender/input_assets/`へ投入し、slugと共有データの整合を確認する
+3. `run_line.ps1` または個別スクリプトでBlender軽量化・glb出力を実行する
+4. Unityプロジェクト `unity/kaido-walk/` の `Assets/Generated/` へ搬入する
+5. Unity world buildとプレビュー確認を行い、必要に応じてDiscordへ完了通知する
+6. `logs/`、`BuildPreviews/`、生成glbなどの不要・大容量成果物をGit管理対象に含めない
+
+## 出力
+- Blender成果物: `SPA_MODEL/02_game-object/blender/output_assets/*.glb`
+- Unity搬入先: `SPA_MODEL/02_game-object/unity/kaido-walk/Assets/Generated/`
+- プレビュー: `BuildPreviews/preview.png` またはライン内の `BuildPreviews/`（Git管理対象外）
+- ログ: `logs/success.log`, `logs/error.log`, `../../logs/blender_build.log`, `../../logs/unity_import.log`, `../../logs/unity_world_build.log`（Git管理対象外）
+
+## KPI
+- FBX投入数とglb変換完了数
+- Unity import成功率
+- ワールドビルド成功率
+- 生成アセットの容量削減率
+- Discord通知成功数
+- slug・タグ・共有データの整合率
+
+## AIへの指示
+このフォルダは独立した製造ラインです。
+変更する場合は以下を守ってください。
+
+1. 既存ファイルを確認する
+2. README.mdを確認する
+3. 出力先を勝手に変更しない
+4. 不要ファイルをGitに含めない
+5. 変更後はgit statusを確認する
+6. 問題なければcommitしてpushする
+
 ## shared-data 参照
 
 [`../shared-data/character_rules.csv`](../shared-data/character_rules.csv)（FBX slug）、[`../shared-data/tags.csv`](../shared-data/tags.csv)
@@ -51,7 +94,7 @@ Assets/Generated/   … glb 搬入先
 
 ## Discord 確認方法
 
-1. `.\run_line.ps1` 完了後 `logs/success.log` に `Discord notification sent`
+1. `run_line.ps1` 完了後 `logs/success.log` に `Discord notification sent`
 2. Bot: `!blender` / `!unity` / `!status`
 3. チャンネルに Webhook メッセージ（`DISCORD_WEBHOOK_URL` 設定時）
 
@@ -83,4 +126,4 @@ Assets/Generated/   … glb 搬入先
 
 ## 最終更新
 
-フェーズ2-A: blender / unity 本体移行、run_line フルパイプライン、SPA 基準パス
+Sランク整備: README必須項目を統合し、Git管理対象外ルールとKPIを明記。
