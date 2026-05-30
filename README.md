@@ -1,13 +1,13 @@
 # HONRAI_FACTORY
 
-AI 製造工場（Cursor / Claude）のルールと、Discord 遠隔操作・製造ライン・外部連携の土台をまとめたリポジトリです。
+AI 製造工場（ChatGPT / Codex / Cursor）のルールと、Discord 通知センター・製造ライン・外部連携の土台をまとめたリポジトリです。
 
 ## このリポジトリの目的
 
 1. **AI 工場ルールの固定** — Cursor と Claude が同じ方針で動く
 2. **日本語化** — 説明・ドキュメントを日本語中心に
 3. **GitHub 運用** — コードの正本を GitHub に置く
-4. **Discord 遠隔操作** — スマホから工場ラインを起動・監視する
+4. **Discord 通知センター** — 完成通知・エラー通知・画像付き preview をチームとスマホへ共有する
 5. **製造ライン統合** — 漫画 / キャリアカード / メタバースをパイプライン化する
 
 ## フォルダ構成
@@ -16,7 +16,7 @@ AI 製造工場（Cursor / Claude）のルールと、Discord 遠隔操作・製
 HONRAI_FACTORY/
 ├── .cursorrules / CLAUDE.md / AGENTS.md
 ├── README.md
-├── bot/                    … Discord 遠隔操作（工場 Bot + discord.js 学習用）
+├── bot/                    … Discord 通知・補助操作（工場 Bot + discord.js 学習用）
 ├── workspace/              … 作業入力（原案・ストーリーボード・キャリア等）
 ├── prompts/                … AI プロンプト資産
 ├── pipelines/              … 製造ライン定義（YAML）
@@ -32,27 +32,36 @@ HONRAI_FACTORY/
 └── .github/workflows/      … CI/CD
 ```
 
-## Discord 遠隔操作
+## Discord 通知センター
 
-`bot/factory_bot.py`（Python / discord.py）が工場の遠隔操作ハブです。
+Discord は製造指示やコード修正の主役ではなく、完成通知・エラー通知・画像付きプレビュー確認のための通知センターです。ChatGPT / Codex が企画・実行・修正・GitHub反映を担当し、Discord は `preview.png` などの結果をチームとスマホへ共有します。
 
-| コマンド | 機能 |
+通知センターとして維持するもの:
+
+| 通知対象 | 役割 |
 |----------|------|
-| `!status` | CPU/RAM/GPU と各ラインの稼働状態 |
-| `!gitpull` | GitHub から最新コードを取得 |
-| `!manga` | 漫画出力監視を起動 |
-| `!comfy_test` | ComfyUI 最小テスト |
-| `!unity` | Unity batch ビルド |
-| `!logs` | 最新ログを表示 |
+| 漫画プレビュー | 生成結果や画像プレビューを共有 |
+| Blender生成プレビュー | 3D生成・軽量化結果を共有 |
+| Unity `BuildPreviews/preview.png` | Unityビルド確認用画像を共有 |
+| エラー通知 | 失敗理由やログ概要を共有 |
+| 完了通知 | 成果物の場所と実行結果を共有 |
 
-起動例:
+`!manga` / `!unity` / `!blender` / `!gitpull` などの Discord 操作コマンドは削除せず、必要時に使う補助機能として残します。ただし、今後の主軸は Discord からの遠隔操作ではなく、通知と画像プレビューの安定運用です。
 
-```powershell
-cd C:\Users\honra\HONRAI_FACTORY
-python -m bot.factory_bot
-```
+詳細は `docs/DISCORD_NOTIFICATION_ROLE.md` と `bot/README.md` を参照してください。
 
-詳細は `bot/README.md` を参照してください。
+
+## 新しい製造フロー
+
+| 担当 | 役割 |
+|------|------|
+| ChatGPT | 企画、指示、レビュー |
+| Codex | Windows上で実行、修正、GitHub反映 |
+| Tripo / Blender / Unity | ゲーム空間・オブジェクト製造 |
+| GitHub | 記録、保管、バージョン管理 |
+| Discord | 通知、画像プレビュー、チーム共有 |
+
+基本フロー: ChatGPT → Codex → Tripo / Blender / Unity → `preview.png` 生成 → Discord通知 → スマホ確認。
 
 ## pipelines 構造
 
@@ -78,7 +87,7 @@ PowerShell:
 python scripts/orchestrator.py pipelines/manga.yaml
 ```
 
-Discord:
+Discord（補助機能）:
 
 ```
 !pipeline_manga
@@ -122,7 +131,7 @@ scripts/
 └── unity_world_build.ps1       … world_request.json から空間生成
 ```
 
-Discord コマンド:
+Discord コマンド（補助機能）:
 
 | コマンド | 処理 |
 |---------|------|
@@ -157,7 +166,7 @@ prompts/career/                   … キャリアカード用プロンプト
 └── deploy-gas.yml       … GAS 自動デプロイ
 
 github/                  … サブリポジトリ（career-card-gas 等）
-bot/commands/gitpull.py  … Discord から git pull
+bot/commands/gitpull.py  … Discord 補助操作から git pull
 ```
 
 日常の運用フローは `workflow/github-basics.md` を参照してください。

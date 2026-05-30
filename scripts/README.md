@@ -12,7 +12,7 @@ HONRAI_FACTORY の自動化スクリプト管理フォルダです。
 
 2. 監視と通知
    └─ watch_manga_output.py
-      └─ Discord Webhook 通知
+      └─ Discord Webhook 通知（通知センターへ送信）
 
 3. ComfyUI 準備
    └─ comfy/extract_image_prompts.py
@@ -47,7 +47,7 @@ scripts\gpt\run_gpt_normal_manga.bat "テーマと指示"
 
 詳細は [gpt/README.md](gpt/README.md) を参照してください。
 
-## 2. 出力監視と Discord 通知
+## 2. 出力監視と Discord 通知センター
 
 ### 自動監視と通知
 ```bash
@@ -69,9 +69,18 @@ scripts\run_watch_manga_output.bat
 - `logs/discord.log` - 送信成功ログ
 - `logs/error.log` - エラーログ
 
+### 通知センターで維持する出力
+- 漫画プレビュー
+- Blender生成プレビュー
+- Unity `BuildPreviews/preview.png`
+- エラー通知
+- 完了通知
+
+Discordは操作入口ではなく通知センターとして扱い、Webhookと画像付き通知を壊さないことを優先します。
+
 ### 手動通知
 ```bash
-python scripts\discord_webhook_notify.py --webhook-url "YOUR_WEBHOOK_URL" --preview "output\manga\4koma\file.json"
+python scripts\discord_webhook_notify.py --webhook-url "YOUR_WEBHOOK_URL" --preview "output\manga\preview.png"
 ```
 
 ## 3. ComfyUI 用 Image Prompt 抽出
