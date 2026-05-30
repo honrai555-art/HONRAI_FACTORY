@@ -14,7 +14,7 @@ AI 製造工場（ChatGPT / Codex / Cursor）のルールと、Discord 通知セ
 
 ```
 HONRAI_FACTORY/
-├── .cursorrules / CLAUDE.md / AGENTS.md
+├── .cursorrules / .cursor/rules/ / CLAUDE.md / AGENTS.md
 ├── README.md
 ├── bot/                    … Discord 通知・補助操作（工場 Bot + discord.js 学習用）
 ├── workspace/              … 作業入力（原案・ストーリーボード・キャリア等）
@@ -223,7 +223,7 @@ python -m bot.factory_bot
 - **勝手な大規模変更** をしない
 - トークン等は **`.env` に置き、GitHub に上げない**
 
-詳細は `.cursorrules` と `CLAUDE.md` を参照してください。
+詳細は `.cursor/rules/`、`.cursorrules`、`AGENTS.md`、`CLAUDE.md` を参照してください。
 
 ## ライセンス
 
