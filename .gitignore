@@ -82,3 +82,7 @@ unityprojects/*/*.sln
 # GitHub 関連
 github/career-card-gas/node_modules/
 github/career-card-gas/package-lock.json
+
+# Google Apps Script clasp local credentials/project binding
+.clasp.json
+.clasprc.json
