@@ -87,3 +87,8 @@ Ver3 では「ユーザーが設定する相応しい次のステージ」を最
 - `growth_db_schema.md` … 保存先カラムの定義
 - `sample_growth_db.csv` … フォーム項目を反映したサンプルデータ
 - `notification_flow.md` … 保存後の通知テンプレート
+
+## 成長DB中心構造
+- 目的: 成長DBを増やす
+- 資産: 成長DB
+- KPI: 更新率

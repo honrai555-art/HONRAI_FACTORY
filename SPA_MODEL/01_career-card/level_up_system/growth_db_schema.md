@@ -115,3 +115,8 @@ Ver3 では `next_stage` の最終決定者はユーザーです。`next_stage_s
 ```
 
 旧設計の `action_log / result_log / current_level / workization_status` 更新も、Ver3では更新率の一部として継続して数えます。
+
+## 成長DB中心構造
+- 目的: 成長DBを増やす
+- 資産: 成長DB
+- KPI: 更新率

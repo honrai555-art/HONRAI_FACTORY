@@ -12,3 +12,7 @@
 2. `.\run_line.ps1`
 3. `logs\error.log` を確認
 
+## 成長DB中心構造
+- 目的: 成長DBを増やす
+- 資産: 成長DB
+- KPI: 更新率
