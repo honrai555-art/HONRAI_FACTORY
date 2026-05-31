@@ -1,0 +1,87 @@
+name: Deploy GAS
+
+on:
+  push:
+    branches:
+      - main
+    paths:
+      - "GAS/**"
+      - "Frontend/**"
+      - ".github/workflows/deploy-gas.yml"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  deploy:
+    name: Push source to Google Apps Script
+    runs-on: ubuntu-latest
+    env:
+      CLASPRC_JSON: ${{ secrets.CLASPRC_JSON }}
+      GAS_SCRIPT_ID: ${{ secrets.GAS_SCRIPT_ID }}
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+
+      - name: Validate required secrets
+        shell: bash
+        run: |
+          if [ -z "$CLASPRC_JSON" ]; then
+            echo "CLASPRC_JSON secret is required." >&2
+            exit 1
+          fi
+
+          if [ -z "$GAS_SCRIPT_ID" ]; then
+            echo "GAS_SCRIPT_ID secret is required." >&2
+            exit 1
+          fi
+
+      - name: Install clasp
+        run: npm install -g @google/clasp
+
+      - name: Restore clasp credentials
+        shell: bash
+        run: |
+          printf '%s' "$CLASPRC_JSON" > "$HOME/.clasprc.json"
+          chmod 600 "$HOME/.clasprc.json"
+
+      - name: Prepare Apps Script source
+        shell: bash
+        run: |
+          mkdir -p gas-dist/Frontend
+
+          cp GAS/Code.gs gas-dist/Code.gs
+          cp Frontend/index.html gas-dist/Frontend/index.html
+          cp Frontend/style.html gas-dist/Frontend/style.html
+          cp Frontend/app.html gas-dist/Frontend/app.html
+
+          cat > gas-dist/appsscript.json <<'JSON'
+          {
+            "timeZone": "Asia/Tokyo",
+            "dependencies": {},
+            "exceptionLogging": "STACKDRIVER",
+            "runtimeVersion": "V8",
+            "webapp": {
+              "executeAs": "USER_DEPLOYING",
+              "access": "ANYONE_ANONYMOUS"
+            }
+          }
+          JSON
+
+          cat > gas-dist/.clasp.json <<JSON
+          {
+            "scriptId": "$GAS_SCRIPT_ID",
+            "rootDir": "."
+          }
+          JSON
+
+      - name: Push to Apps Script
+        working-directory: gas-dist
+        run: clasp push --force
